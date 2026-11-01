@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- 背景圆角矩形 -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M8,2 h32 a6,6 0 0 1 6,6 v32 a6,6 0 0 1 -6,6 h-32 a6,6 0 0 1 -6,-6 v-32 a6,6 0 0 1 6,-6 z" />
+    <!-- 屏幕外框 -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M14,10 h20 a2,2 0 0 1 2,2 v24 a2,2 0 0 1 -2,2 h-20 a2,2 0 0 1 -2,-2 v-24 a2,2 0 0 1 2,-2 z" />
+    <!-- 向下滚动箭头 + 虚线 -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M24,16 v12 M19,24 l5,5 5,-5" />
+</vector>

@@ -1,0 +1,49 @@
+name: Longshot
+options:
+  bundleIdPrefix: com.longshot
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGNING_ALLOWED: "YES"
+
+targets:
+  Longshot:
+    type: application
+    platform: iOS
+    sources:
+      - path: App/Sources
+      - path: CoreShim
+      # 共享 C++ 拼接核心直接编入主 App
+      - path: ../core/src
+    dependencies:
+      - target: BroadcastExtension
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.longshot.app
+        PRODUCT_NAME: Longshot
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/Longshot.entitlements
+        SWIFT_OBJC_BRIDGING_HEADER: App/Sources/BridgingHeader.h
+        CLANG_CXX_LANGUAGE_STANDARD: c++17
+        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/CoreShim $(PROJECT_DIR)/../core/include"
+        TARGETED_DEVICE_FAMILY: "1"
+
+  BroadcastExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: BroadcastExtension
+      # 与主 App 共享 App Group 访问逻辑
+      - path: App/Sources/AppGroupStore.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.longshot.app.broadcast
+        PRODUCT_NAME: BroadcastExtension
+        INFOPLIST_FILE: BroadcastExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: BroadcastExtension/BroadcastExtension.entitlements
+        TARGETED_DEVICE_FAMILY: "1"

@@ -1,0 +1,27 @@
+# 构建产物
+build/
+*.exe
+*.o
+*.obj
+
+# Android
+android/.gradle/
+android/app/.cxx/
+android/app/build/
+android/build/
+android/local.properties
+*.apk
+*.aab
+
+# iOS（XcodeGen 生成工程，不入库）
+ios/*.xcodeproj
+ios/DerivedData/
+xcuserdata/
+*.xcuserstate
+.DS_Store
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.zcode/

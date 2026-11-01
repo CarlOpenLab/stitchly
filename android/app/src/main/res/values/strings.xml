@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">长截图</string>
+    <string name="accessibility_service_label">长截图 - 自动滚动</string>
+    <string name="accessibility_service_desc">开启后，长截图过程中可自动模拟缓慢上滑手势，无需手动滚动。该服务不会读取或记录任何屏幕内容，仅用于发送滚动手势。</string>
+    <string name="stop_action">停止</string>
+    <string name="notif_channel_capture">截屏采集</string>
+    <string name="notif_capturing">正在采集长截图…点击"停止"结束</string>
+</resources>
