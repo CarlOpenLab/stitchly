@@ -1,4 +1,4 @@
-package com.longshot.app.capture
+package com.stitchly.app.capture
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -28,10 +28,10 @@ import android.widget.Button
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ServiceCompat
-import com.longshot.app.R
-import com.longshot.app.StitchEngine
-import com.longshot.app.stitch.FrameComposer
-import com.longshot.app.util.ImageIo
+import com.stitchly.app.R
+import com.stitchly.app.StitchEngine
+import com.stitchly.app.stitch.FrameComposer
+import com.stitchly.app.util.ImageIo
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -45,7 +45,7 @@ class CaptureService : Service() {
     companion object {
         const val EXTRA_RESULT_CODE = "resultCode"
         const val EXTRA_DATA = "data"
-        private const val ACTION_STOP = "com.longshot.app.action.STOP"
+        private const val ACTION_STOP = "com.stitchly.app.action.STOP"
         private const val CHANNEL_ID = "capture"
         private const val NOTIF_ID = 1
         private const val CAPTURE_INTERVAL_MS = 125L // ~8fps

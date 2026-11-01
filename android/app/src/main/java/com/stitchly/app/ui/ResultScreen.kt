@@ -1,4 +1,4 @@
-package com.longshot.app.ui
+package com.stitchly.app.ui
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -30,8 +30,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.longshot.app.capture.CaptureSession
-import com.longshot.app.util.ImageIo
+import com.stitchly.app.capture.CaptureSession
+import com.stitchly.app.util.ImageIo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

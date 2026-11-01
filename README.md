@@ -53,11 +53,11 @@ cmake -S core -B build -DLS_BUILD_TESTS=ON && cmake --build build && ctest --tes
 ```bash
 brew install xcodegen
 cd ios && xcodegen generate
-open Longshot.xcodeproj
+open Stitchly.xcodeproj
 ```
 
 1. Signing & Capabilities 中选择你的开发者团队（App 与扩展两个 target）
-2. App Group（`group.com.longshot.app`）会随 entitlements 自动配置
+2. App Group（`group.com.stitchly.app`）会随 entitlements 自动配置
 3. 真机运行 `Longshot`（iOS 15+，Broadcast 扩展必须真机验证）
 
 ## 真机验证清单
@@ -90,8 +90,10 @@ open Longshot.xcodeproj
 - iOS 扩展受约 50MB 内存限制，实现为 H.264 硬编码流式写文件；超长录屏（>5 分钟）未做上限保护
 - 横屏 / 折叠屏展开中途 / 深色模式中途切换未做特殊处理
 
-## 命名替换
+## 命名说明
 
-包名/Bundle ID 目前为占位 `com.longshot.app`。全局替换：
-- Android：`android/app/build.gradle.kts` 的 `applicationId` + `namespace` + `AndroidManifest.xml` 的 FileProvider authorities（`${applicationId}` 自动跟随）
-- iOS：`ios/project.yml` 的两个 `PRODUCT_BUNDLE_IDENTIFIER` 与两个 entitlements 里的 App Group 名
+品牌名 **Stitchly（拾卷）**，应用包名 / Bundle ID / App Group 已统一为：
+
+- Android：`applicationId` / `namespace` = `com.stitchly.app`
+- iOS：Bundle ID `com.stitchly.app`，Broadcast 扩展 `com.stitchly.app.broadcast`，App Group `group.com.stitchly.app`
+- 拼接核心库的内部代号仍为 `longshot`（`liblongshot.so`、C API 前缀 `ls_`），仅工程内部可见，不影响品牌与上架，无需替换

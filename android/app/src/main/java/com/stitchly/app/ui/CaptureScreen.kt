@@ -1,4 +1,4 @@
-package com.longshot.app.ui
+package com.stitchly.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,8 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.longshot.app.capture.CaptureService
-import com.longshot.app.capture.CaptureSession
+import com.stitchly.app.capture.CaptureService
+import com.stitchly.app.capture.CaptureSession
 
 @Composable
 fun CaptureScreen() {

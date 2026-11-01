@@ -1,0 +1,18 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "Stitchly Landing Page": {
+      "versions": [
+        {
+          "path": "index.html",
+          "createdAt": "2026-11-01T15:56:22.383Z",
+          "status": "needs-review"
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-11-01T15:56:22.385Z",
+  "updatedAt": "2026-11-01T17:08:41.463Z"
+}

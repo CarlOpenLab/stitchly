@@ -1,4 +1,4 @@
-package com.longshot.app
+package com.stitchly.app
 
 import android.Manifest
 import android.app.Activity
@@ -21,12 +21,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import com.longshot.app.capture.CaptureService
-import com.longshot.app.capture.CaptureSession
-import com.longshot.app.ui.AlbumScreen
-import com.longshot.app.ui.CaptureScreen
-import com.longshot.app.ui.HomeScreen
-import com.longshot.app.ui.ResultScreen
+import com.stitchly.app.capture.CaptureService
+import com.stitchly.app.capture.CaptureSession
+import com.stitchly.app.ui.AlbumScreen
+import com.stitchly.app.ui.CaptureScreen
+import com.stitchly.app.ui.HomeScreen
+import com.stitchly.app.ui.ResultScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

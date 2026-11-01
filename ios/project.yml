@@ -1,6 +1,6 @@
-name: Longshot
+name: Stitchly
 options:
-  bundleIdPrefix: com.longshot
+  bundleIdPrefix: com.stitchly
   createIntermediateGroups: true
   deploymentTarget:
     iOS: "15.0"
@@ -24,7 +24,7 @@ targets:
         embed: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.longshot.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.stitchly.app
         PRODUCT_NAME: Longshot
         INFOPLIST_FILE: App/Info.plist
         CODE_SIGN_ENTITLEMENTS: App/Longshot.entitlements
@@ -42,7 +42,7 @@ targets:
       - path: App/Sources/AppGroupStore.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.longshot.app.broadcast
+        PRODUCT_BUNDLE_IDENTIFIER: com.stitchly.app.broadcast
         PRODUCT_NAME: BroadcastExtension
         INFOPLIST_FILE: BroadcastExtension/Info.plist
         CODE_SIGN_ENTITLEMENTS: BroadcastExtension/BroadcastExtension.entitlements

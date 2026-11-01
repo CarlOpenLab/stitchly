@@ -1,4 +1,4 @@
-package com.longshot.app.ui
+package com.stitchly.app.ui
 
 import android.content.Intent
 import android.provider.Settings
@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.longshot.app.capture.CaptureSession
+import com.stitchly.app.capture.CaptureSession
 
 @Composable
 fun HomeScreen(onCapture: () -> Unit, onAlbum: () -> Unit) {

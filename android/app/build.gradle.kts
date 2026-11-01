@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.longshot.app"
+    namespace = "com.stitchly.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.longshot.app"
+        applicationId = "com.stitchly.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

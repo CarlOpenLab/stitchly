@@ -1,4 +1,4 @@
-package com.longshot.app.scroll
+package com.stitchly.app.scroll
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
@@ -6,8 +6,8 @@ import android.graphics.Path
 import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
-import com.longshot.app.capture.CaptureService
-import com.longshot.app.capture.CaptureSession
+import com.stitchly.app.capture.CaptureService
+import com.stitchly.app.capture.CaptureSession
 
 /**
  * 可选增强：采集期间自动模拟缓慢上滑手势（需用户在系统设置中开启本服务，

@@ -1,4 +1,4 @@
-package com.longshot.app.util
+package com.stitchly.app.util
 
 import android.content.ContentValues
 import android.content.Context

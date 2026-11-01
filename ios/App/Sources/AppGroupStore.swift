@@ -2,7 +2,7 @@ import Foundation
 
 /// 主 App 与 Broadcast 扩展之间通过 App Group 容器交换录屏文件
 enum AppGroupStore {
-    static let groupID = "group.com.longshot.app"
+    static let groupID = "group.com.stitchly.app"
 
     static var containerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupID)

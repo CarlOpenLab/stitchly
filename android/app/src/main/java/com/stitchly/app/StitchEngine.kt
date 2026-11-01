@@ -1,4 +1,4 @@
-package com.longshot.app
+package com.stitchly.app
 
 /** 拼接结果（对应 core 的 LsResult） */
 class StitchResult(

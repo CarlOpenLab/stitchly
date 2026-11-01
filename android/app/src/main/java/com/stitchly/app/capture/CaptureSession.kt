@@ -1,4 +1,4 @@
-package com.longshot.app.capture
+package com.stitchly.app.capture
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

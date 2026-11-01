@@ -9,7 +9,7 @@
 namespace {
 
 jobject make_result(JNIEnv* env, const LsResult* r) {
-    jclass cls = env->FindClass("com/longshot/app/StitchResult");
+    jclass cls = env->FindClass("com/stitchly/app/StitchResult");
     if (!cls) return nullptr;
     jmethodID ctor = env->GetMethodID(cls, "<init>", "([BII[I[F[Z[ZIZI)V");
     if (!ctor) return nullptr;

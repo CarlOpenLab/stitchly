@@ -1,4 +1,4 @@
-package com.longshot.app.ui
+package com.stitchly.app.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -25,9 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.longshot.app.capture.CaptureSession
-import com.longshot.app.stitch.AlbumStitcher
-import com.longshot.app.util.ImageIo
+import com.stitchly.app.capture.CaptureSession
+import com.stitchly.app.stitch.AlbumStitcher
+import com.stitchly.app.util.ImageIo
 import kotlinx.coroutines.launch
 import java.io.File
 

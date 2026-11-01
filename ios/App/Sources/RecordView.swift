@@ -139,7 +139,7 @@ struct RecordView: View {
 struct BroadcastPickerView: UIViewRepresentable {
     func makeUIView(context: Context) -> RPSystemBroadcastPickerView {
         let view = RPSystemBroadcastPickerView(frame: .zero)
-        view.preferredExtension = "com.longshot.app.broadcast"
+        view.preferredExtension = "com.stitchly.app.broadcast"
         view.showsMicrophoneButton = false
         return view
     }

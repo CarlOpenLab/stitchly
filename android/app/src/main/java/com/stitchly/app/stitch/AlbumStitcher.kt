@@ -1,10 +1,10 @@
-package com.longshot.app.stitch
+package com.stitchly.app.stitch
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import com.longshot.app.StitchEngine
-import com.longshot.app.util.ImageIo
+import com.stitchly.app.StitchEngine
+import com.stitchly.app.util.ImageIo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

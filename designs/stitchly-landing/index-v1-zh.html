@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stitchly 拾卷 — 任何应用，一卷到底</title>
+<meta name="description" content="Stitchly 拾卷：安卓与 iOS 系统级长截图工具。实时抓帧拼接、录屏抽帧、相册拼接，三种方式，任意应用的长页面一张图收进口袋。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.15 0.025 255);
+  --bg-soft: oklch(0.19 0.03 255);
+  --card: oklch(0.21 0.03 255);
+  --line: oklch(0.32 0.03 255 / 0.55);
+  --text: oklch(0.96 0.01 255);
+  --muted: oklch(0.74 0.02 255);
+  --accent: oklch(0.82 0.09 210);
+  --accent-dim: oklch(0.82 0.09 210 / 0.12);
+  --danger: oklch(0.72 0.16 25);
+  --radius: 18px;
+  --font-display: "Space Grotesk", -apple-system, "PingFang SC", "MiSans", "HarmonyOS Sans SC", "Noto Sans SC", sans-serif;
+  --font-body: -apple-system, "PingFang SC", "MiSans", "HarmonyOS Sans SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--text);
+  font-family:var(--font-body); line-height:1.75;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+::selection{ background:var(--accent); color:var(--bg); }
+
+/* ---- atmosphere ---- */
+.atmo{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+.atmo::before{
+  content:""; position:absolute; inset:0;
+  background:
+    radial-gradient(52rem 30rem at 14% -8%, oklch(0.60 0.07 220 / 0.12), transparent 60%),
+    radial-gradient(44rem 30rem at 88% 116%, oklch(0.45 0.05 250 / 0.10), transparent 62%);
+}
+.atmo::after{ /* grain */
+  content:""; position:absolute; inset:0; opacity:0.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.gridlines{
+  position:absolute; inset:0; opacity:0.5;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:56px 56px; mask-image:radial-gradient(70rem 40rem at 50% 0%, black 0%, transparent 78%);
+  opacity:0.10;
+}
+.wrap{ position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 28px; }
+
+/* ---- type ---- */
+.en{ font-family:var(--font-display); letter-spacing:0.14em; text-transform:uppercase; }
+.mono{ font-family:var(--font-mono); }
+h1,h2,h3{ font-family:var(--font-display); line-height:1.18; letter-spacing:-0.01em; }
+.kicker{
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.22em;
+  text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:12px;
+}
+.kicker::before{ content:""; width:26px; height:1px; background:var(--accent); }
+.grad{ color:var(--text); }
+
+/* ---- nav ---- */
+nav{
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+  background:oklch(0.15 0.025 255 / 0.72); border-bottom:1px solid var(--line);
+}
+.nav-in{ display:flex; align-items:center; gap:28px; height:64px; }
+.brand{ display:flex; align-items:baseline; gap:10px; text-decoration:none; color:var(--text); }
+.brand .wordmark{ font-family:var(--font-display); font-weight:700; font-size:20px; letter-spacing:0.04em; }
+.brand .cn{ font-size:13px; color:var(--muted); letter-spacing:0.4em; }
+.nav-links{ display:flex; gap:22px; margin-left:auto; }
+.nav-links a{ color:var(--muted); text-decoration:none; font-size:14px; transition:color .2s; }
+.nav-links a:hover{ color:var(--text); }
+.nav-gh{
+  font-family:var(--font-mono); font-size:13px; color:var(--accent); text-decoration:none;
+  border:1px solid var(--line); border-radius:999px; padding:6px 14px; transition:border-color .2s;
+}
+.nav-gh:hover{ border-color:var(--accent); }
+
+/* ---- hero ---- */
+.hero{ padding:84px 0 40px; display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center; }
+.hero h1{ font-size:clamp(40px, 5.6vw, 66px); font-weight:700; margin:20px 0 18px; }
+.hero .sub{ font-size:17px; color:var(--muted); max-width:32em; }
+.hero .en-tag{ margin-top:14px; font-size:13px; color:oklch(0.74 0.02 255 / 0.7); }
+.cta-row{ display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; }
+.btn{
+  display:inline-flex; align-items:center; gap:10px; text-decoration:none;
+  font-family:var(--font-display); font-weight:500; font-size:15.5px;
+  padding:14px 26px; border-radius:999px; transition:transform .18s, box-shadow .18s, border-color .18s;
+}
+.btn-primary{
+  color:oklch(0.14 0.02 250); background:var(--accent);
+  box-shadow:0 4px 18px oklch(0.82 0.09 210 / 0.18);
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 6px 24px oklch(0.82 0.09 210 / 0.26); }
+.btn-ghost{ color:var(--text); border:1px solid var(--line); position:relative; }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn-ghost .tag{
+  position:absolute; top:-9px; right:12px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.1em; color:var(--accent); background:var(--bg); padding:0 6px;
+}
+.btn.disabled{ opacity:0.6; pointer-events:none; }
+
+.stats{ display:grid; grid-template-columns:repeat(4, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-top:44px; }
+.stat{ background:var(--bg-soft); padding:16px 18px; }
+.stat b{ font-family:var(--font-display); font-size:24px; font-weight:700; display:block; color:var(--text); }
+.stat span{ font-size:12.5px; color:var(--muted); letter-spacing:0.02em; }
+
+/* ---- phone mockups ---- */
+.hero-visual{ position:relative; min-height:600px; }
+.phone{
+  position:absolute; width:264px; border-radius:40px; padding:10px;
+  background:linear-gradient(160deg, oklch(0.30 0.03 255), oklch(0.17 0.02 255));
+  border:1px solid oklch(0.45 0.04 255 / 0.6);
+  box-shadow:0 40px 80px oklch(0.05 0.02 255 / 0.7), 0 0 0 1px oklch(0.1 0.02 255 / 0.8);
+}
+.phone .screen{ border-radius:31px; overflow:hidden; background:oklch(0.13 0.02 255); height:540px; position:relative; display:flex; flex-direction:column; }
+.phone .notch{ width:84px; height:22px; background:oklch(0.08 0.01 255); border-radius:0 0 14px 14px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:5; }
+.p-front{ right:6%; top:30px; z-index:3; transform:rotate(2.5deg); }
+.p-front{ animation:hover 7s ease-in-out infinite; }
+@keyframes hover{ 0%,100%{ transform:rotate(2.5deg) translateY(0); } 50%{ transform:rotate(2.5deg) translateY(-12px); } }
+.p-long{
+  left:0; top:110px; z-index:2; transform:rotate(-4deg) scale(0.92); opacity:0.96;
+}
+.p-long .screen{ height:560px; }
+
+.statusbar{ display:flex; justify-content:space-between; padding:12px 18px 6px; font-family:var(--font-mono); font-size:11px; color:var(--muted); z-index:4; }
+.capture-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:0 20px; text-align:center; }
+.capture-body .dot{ width:10px; height:10px; border-radius:50%; background:var(--danger); box-shadow:0 0 12px var(--danger); animation:pulse 1.4s infinite; }
+@keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+.capture-body .t1{ font-size:13px; color:var(--muted); }
+.framecount{ font-family:var(--font-mono); font-size:44px; font-weight:500; color:var(--accent); line-height:1; }
+.framecount small{ font-size:13px; color:var(--muted); font-weight:400; }
+.stoppill{ margin-top:8px; font-size:13px; padding:9px 26px; border-radius:999px; border:1px solid var(--line); color:var(--text); background:oklch(0.24 0.03 255); }
+.bottom-badge{
+  margin:0 16px 16px; padding:10px 14px; border-radius:12px; font-size:12.5px;
+  background:var(--accent-dim); border:1px solid oklch(0.82 0.09 210 / 0.30);
+  color:var(--accent); opacity:0; transition:opacity .6s; display:flex; align-items:center; gap:8px;
+}
+.bottom-badge.show{ opacity:1; }
+.appbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 18px 10px; font-size:12px; color:var(--muted); }
+
+/* stitched long-image phone */
+.longimg{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
+.longimg .piece{ border-radius:10px; background:linear-gradient(180deg, oklch(0.24 0.02 255), oklch(0.20 0.02 255)); padding:12px; }
+.row{ height:7px; border-radius:4px; background:oklch(0.42 0.03 255 / 0.7); margin-bottom:7px; }
+.row:last-child{ margin-bottom:0; }
+.row.w60{ width:60%; } .row.w85{ width:85%; } .row.w40{ width:40%; }
+.seam{
+  display:flex; align-items:center; gap:8px; font-family:var(--font-mono);
+  font-size:9.5px; color:var(--muted); letter-spacing:0.12em; opacity:0.8;
+}
+.seam::before,.seam::after{ content:""; flex:1; height:1px; background:var(--line); }
+.longimg .head{ border-radius:10px; height:54px; background:linear-gradient(135deg, oklch(0.30 0.03 255), oklch(0.23 0.02 255)); }
+.longimg .foot{ border-radius:10px; height:34px; background:oklch(0.26 0.02 255); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:0.2em; }
+
+/* ---- sections ---- */
+section{ padding:88px 0; }
+.sec-head{ max-width:640px; margin-bottom:48px; }
+.sec-head h2{ font-size:clamp(28px, 3.4vw, 40px); margin:16px 0 12px; }
+.sec-head p{ color:var(--muted); font-size:16px; }
+
+.methods{ display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+.mcard{
+  background:linear-gradient(170deg, var(--card), oklch(0.17 0.02 255));
+  border:1px solid var(--line); border-radius:var(--radius); padding:26px;
+  transition:transform .25s, border-color .25s;
+}
+.mcard:hover{ transform:translateY(-6px); border-color:oklch(0.82 0.09 210 / 0.4); }
+.mcard .mini{ height:130px; border-radius:12px; background:oklch(0.14 0.02 255); border:1px solid var(--line); margin-bottom:20px; position:relative; overflow:hidden; }
+.mcard h3{ font-size:19px; margin-bottom:4px; }
+.mcard .en-sub{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.18em; color:var(--accent); text-transform:uppercase; margin-bottom:12px; }
+.mcard p{ font-size:14px; color:var(--muted); }
+.mcard .plat{ display:inline-block; margin-top:14px; font-family:var(--font-mono); font-size:11px; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+
+.mini .m-frame{ position:absolute; width:52%; height:64%; border:1.5px solid oklch(0.55 0.04 255); border-radius:8px; background:oklch(0.20 0.02 255); }
+.mini .m-frame .l{ height:5px; border-radius:3px; background:oklch(0.45 0.03 255 / 0.8); margin:8px 10px 6px; }
+.mini .m-frame .l.short{ width:55%; }
+.mini-live .m-frame{ left:8%; top:18%; }
+.mini-live .m-frame.m2{ left:24%; top:24%; border-color:var(--accent); animation:slide 3.4s ease-in-out infinite; }
+.mini-live .m-frame.m3{ left:40%; top:30%; border-color:oklch(0.55 0.04 255 / 0.7); }
+@keyframes slide{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(9px); } }
+.mini-film{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.mini-film .cell{ width:34px; height:52px; border:1px solid oklch(0.5 0.04 255); border-radius:5px; background:oklch(0.21 0.02 255); position:relative; }
+.mini-film .cell::before,.mini-film .cell::after{ content:""; position:absolute; left:4px; right:4px; height:3px; background:oklch(0.4 0.03 255 / 0.6); border-radius:2px; }
+.mini-film .cell::before{ top:4px; } .mini-film .cell::after{ bottom:4px; }
+.mini-film .cell.hot{ border-color:var(--accent); }
+.mini-film .cell .inner{ position:absolute; inset:12px 5px; border-radius:2px; background:linear-gradient(160deg, oklch(0.45 0.08 240), oklch(0.35 0.10 300)); }
+.mini-album{ display:flex; align-items:center; justify-content:center; }
+.mini-album .shot{ width:38px; height:60px; border-radius:6px; border:1px solid oklch(0.5 0.04 255); background:oklch(0.21 0.02 255); margin-right:-10px; }
+.mini-album .shot.s1{ transform:rotate(-8deg) translateY(6px); }
+.mini-album .shot.s2{ transform:rotate(-2deg); border-color:var(--accent); z-index:2; }
+.mini-album .shot.s3{ transform:rotate(7deg) translateY(-4px); }
+.mini-album .arrow{ font-family:var(--font-mono); color:var(--accent); margin:0 10px 0 18px; }
+.mini-album .long{ width:26px; height:74px; border-radius:6px; border:1px solid oklch(0.55 0.04 255 / 0.8); background:repeating-linear-gradient(180deg, oklch(0.24 0.02 255) 0 10px, oklch(0.30 0.03 255) 10px 12px); }
+
+/* ---- how it works ---- */
+.how{ background:var(--bg-soft); border-block:1px solid var(--line); }
+.steps{ display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; }
+.step{ border-left:1px solid var(--line); padding:4px 0 4px 20px; position:relative; }
+.step::before{ content:""; position:absolute; left:-5px; top:10px; width:9px; height:9px; border-radius:50%; background:var(--accent); }
+.step .no{ font-family:var(--font-mono); font-size:11px; color:var(--accent); letter-spacing:0.18em; }
+.step h3{ font-size:17px; margin:8px 0 6px; }
+.step p{ font-size:13.5px; color:var(--muted); }
+.techbox{
+  margin-top:44px; border:1px solid var(--line); border-radius:var(--radius);
+  background:oklch(0.14 0.02 255); padding:28px 30px; display:grid; grid-template-columns:1fr 1.1fr; gap:36px; align-items:center;
+}
+.techbox h3{ font-size:18px; margin-bottom:8px; }
+.techbox p{ font-size:14px; color:var(--muted); }
+.techbox .mono-line{ font-family:var(--font-mono); font-size:12px; color:oklch(0.78 0.03 255 / 0.75); margin-top:14px; padding:12px 14px; border-radius:10px; background:oklch(0.19 0.02 255); border:1px solid var(--line); }
+.techbox svg{ width:100%; height:auto; display:block; }
+
+/* ---- faq ---- */
+.faq-list{ display:grid; gap:12px; max-width:780px; }
+details{ border:1px solid var(--line); border-radius:14px; background:var(--card); overflow:hidden; }
+details[open]{ border-color:oklch(0.82 0.09 210 / 0.35); }
+summary{
+  cursor:pointer; list-style:none; padding:18px 22px; font-family:var(--font-display);
+  font-size:16.5px; font-weight:500; display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+summary::-webkit-details-marker{ display:none; }
+summary .plus{ font-family:var(--font-mono); color:var(--accent); transition:transform .25s; }
+details[open] summary .plus{ transform:rotate(45deg); }
+details .ans{ padding:0 22px 20px; font-size:14.5px; color:var(--muted); }
+
+/* ---- download ---- */
+.dl{
+  text-align:center; border:1px solid var(--line); border-radius:24px; padding:64px 28px;
+  background:
+    radial-gradient(30rem 16rem at 50% -20%, oklch(0.60 0.07 220 / 0.10), transparent 70%),
+    linear-gradient(170deg, var(--card), oklch(0.16 0.02 255));
+}
+.dl h2{ font-size:clamp(30px, 4vw, 44px); margin-bottom:12px; }
+.dl .sub{ color:var(--muted); margin-bottom:36px; }
+.dl-row{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.dl-note{ margin-top:26px; font-family:var(--font-mono); font-size:12px; color:oklch(0.74 0.02 255 / 0.65); letter-spacing:0.06em; }
+
+/* ---- footer ---- */
+footer{ border-top:1px solid var(--line); padding:36px 0 48px; margin-top:88px; }
+.foot-in{ display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:space-between; }
+.foot-in .brand{ opacity:0.9; }
+.foot-links{ display:flex; gap:20px; }
+.foot-links a{ color:var(--muted); text-decoration:none; font-size:13px; }
+.foot-links a:hover{ color:var(--text); }
+.copyright{ width:100%; font-size:12px; color:oklch(0.68 0.02 255 / 0.55); font-family:var(--font-mono); }
+
+/* ---- reveal on scroll ---- */
+.reveal{ opacity:0; transform:translateY(26px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){
+  .reveal{ opacity:1; transform:none; transition:none; }
+  .p-front, .mini-live .m-frame.m2, .capture-body .dot{ animation:none; }
+}
+
+/* ---- responsive ---- */
+@media (max-width: 960px){
+  .hero{ grid-template-columns:1fr; padding-top:56px; }
+  .hero-visual{ min-height:660px; }
+  .p-long{ left:4%; top:340px; }
+  .p-front{ right:10%; top:0; }
+  .methods{ grid-template-columns:1fr; }
+  .steps{ grid-template-columns:1fr 1fr; gap:28px; }
+  .techbox{ grid-template-columns:1fr; }
+  .stats{ grid-template-columns:1fr 1fr; }
+  .nav-links{ display:none; }
+}
+@media (max-width: 560px){
+  .wrap{ padding:0 18px; }
+  .hero-visual{ min-height:620px; transform:scale(0.88); transform-origin:top center; margin-bottom:-60px; }
+  .steps{ grid-template-columns:1fr; }
+  .p-long{ display:none; }
+  .p-front{ right:50%; transform:translateX(50%); }
+}
+</style>
+</head>
+<body>
+
+<div class="atmo"><div class="gridlines"></div></div>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <span class="wordmark grad">STITCHLY</span>
+      <span class="cn">拾卷</span>
+    </a>
+    <div class="nav-links">
+      <a href="#methods">三种方式</a>
+      <a href="#how">工作原理</a>
+      <a href="#faq">常见问题</a>
+      <a href="#download">下载</a>
+    </div>
+    <a class="nav-gh" href="#" aria-label="GitHub 仓库（占位链接）">GITHUB ↗</a>
+  </div>
+</nav>
+
+<header class="wrap hero" id="top">
+  <div>
+    <div class="kicker">Android · iOS — 系统级长截图</div>
+    <h1>任何应用，<br><span class="grad">一卷到底</span></h1>
+    <p class="sub">微信聊天、深夜长帖、商品详情……只要能滚动的页面，Stitchly 都能拼成一张完整长图。<strong style="color:var(--text)">滚动时实时抓帧，停手自动收卷</strong>——不用挑重叠、不用导第三方。</p>
+    <p class="en-tag en">Scroll once · Stitch all</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#download">下载 Android 版</a>
+      <a class="btn btn-ghost disabled" href="#download">App Store<span class="tag">TESTFLIGHT</span></a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>3</b><span>种采集方式</span></div>
+      <div class="stat"><b>~30ms</b><span>每帧对齐耗时</span></div>
+      <div class="stat"><b>100%</b><span>本地处理 不上传</span></div>
+      <div class="stat"><b>0</b><span>水印 · 无需注册</span></div>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <div class="phone p-long">
+      <div class="screen">
+        <div class="statusbar"><span>22:47</span><span>5G ▮</span></div>
+        <div class="appbar"><span>拾卷 · 拼接结果</span><span>1080 × 27,632</span></div>
+        <div class="longimg">
+          <div class="head"></div>
+          <div class="seam">STITCH 01</div>
+          <div class="piece"><div class="row"></div><div class="row w85"></div><div class="row w60"></div></div>
+          <div class="piece"><div class="row w85"></div><div class="row"></div><div class="row w40"></div><div class="row w60"></div></div>
+          <div class="seam">STITCH 02</div>
+          <div class="piece"><div class="row w60"></div><div class="row"></div><div class="row w85"></div></div>
+          <div class="piece"><div class="row"></div><div class="row w40"></div><div class="row w60"></div><div class="row w85"></div></div>
+          <div class="seam">STITCH 03</div>
+          <div class="piece"><div class="row w85"></div><div class="row w60"></div><div class="row"></div></div>
+          <div class="foot">— REACHED END —</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone p-front">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>22:47</span><span>5G ▮</span></div>
+        <div class="appbar"><span>拾卷</span><span>● REC</span></div>
+        <div class="capture-body">
+          <div class="dot"></div>
+          <div class="t1">正在采集 · 请缓慢滚动页面</div>
+          <div class="framecount"><span id="frameNum">0</span> <small>帧</small></div>
+          <div class="t1" style="font-size:11.5px">已自动去重 <span id="dupNum">0</span> 帧</div>
+          <div class="stoppill">停止采集</div>
+        </div>
+        <div class="bottom-badge" id="bottomBadge">✓ 已检测到页底 · 自动收卷</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="methods">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Three ways · 三种方式</div>
+      <h2>不同场景，各有捷径</h2>
+      <p>系统级截取任意应用，两条系统通道 + 一条零门槛通道，全部收在同一个 App 里。</p>
+    </div>
+    <div class="methods">
+      <div class="mcard reveal">
+        <div class="mini mini-live" aria-hidden="true">
+          <div class="m-frame"><div class="l"></div><div class="l short"></div></div>
+          <div class="m-frame m2"><div class="l"></div><div class="l short"></div></div>
+          <div class="m-frame m3"><div class="l"></div><div class="l short"></div></div>
+        </div>
+        <h3>实时抓帧</h3>
+        <div class="en-sub">Live capture</div>
+        <p>授权一次录屏，切到目标应用慢慢滚动；停下约一秒自动收卷拼接。开启「自动滚动」后连手指都省了，页面自己匀速上滑。</p>
+        <span class="plat">ANDROID 8.0+</span>
+      </div>
+      <div class="mcard reveal">
+        <div class="mini mini-film" aria-hidden="true">
+          <div class="cell"><div class="inner"></div></div>
+          <div class="cell hot"><div class="inner"></div></div>
+          <div class="cell"><div class="inner"></div></div>
+          <div class="cell"><div class="inner"></div></div>
+        </div>
+        <h3>录屏抽帧</h3>
+        <div class="en-sub">Record &amp; extract</div>
+        <p>通过系统「屏幕直播」边滚边录，App 自动从视频里抽帧、去重、对齐。这是 iOS 上截取其他应用长图的唯一系统通道。</p>
+        <span class="plat">iOS 15.0+</span>
+      </div>
+      <div class="mcard reveal">
+        <div class="mini mini-album" aria-hidden="true">
+          <div class="shot s1"></div>
+          <div class="shot s2"></div>
+          <div class="shot s3"></div>
+          <span class="arrow">»</span>
+          <div class="long"></div>
+        </div>
+        <h3>相册拼接</h3>
+        <div class="en-sub">Album stitch</div>
+        <p>已经截好了一串图？按顺序选进来自动拼接——重叠区自动检测，状态栏只保留一份。双端一致，不需要任何敏感权限。</p>
+        <span class="plat">ANDROID · iOS</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">How it works · 工作原理</div>
+      <h2>停手的那一秒，发生了什么</h2>
+      <p>拼接核心用 C++ 写了一份、双端共享：不依赖任何第三方图像库，全部计算在本机完成。</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="no">01 · CAPTURE</div><h3>连续采集</h3><p>约每 0.12 秒收一帧，帧与帧之间天然带大量重叠。</p></div>
+      <div class="step reveal"><div class="no">02 · ALIGN</div><h3>分带对齐</h3><p>竖向分成 4 带各自寻找重叠位置，取中位数投票，动态内容（GIF、视频轮播）被干净分带淹没；再抛物线插值到亚像素精度。</p></div>
+      <div class="step reveal"><div class="no">03 · DEDUCE</div><h3>智能去重</h3><p>识别重复帧与「已到页底」：新增内容不足 8 像素的帧自动剔除，长列表滚过头也不怕。</p></div>
+      <div class="step reveal"><div class="no">04 · EXPORT</div><h3>收卷导出</h3><p>状态栏、导航栏只保留首尾各一份，输出无损 PNG，直接保存或分享。</p></div>
+    </div>
+    <div class="techbox reveal">
+      <div>
+        <h3>为什么又快又稳</h3>
+        <p>对齐只在一维垂直方向搜索：先把每帧降到 200px 宽的灰度图，用积分图加速的归一化互相关（NCC）找重叠，再回到原图无缝合成。每对相邻帧约 30ms，一百帧的会话也只花几秒。</p>
+        <div class="mono-line">ncc(shift) = cov(A[-s:], B[:s]) / (σ_A · σ_B)<br>shift* = median( band₁, band₂, band₃, band₄ )</div>
+      </div>
+      <svg viewBox="0 0 460 190" role="img" aria-label="NCC 得分随重叠位移变化的曲线，在真实重叠处形成尖峰">
+        <rect x="46" y="10" width="400" height="140" fill="none" stroke="oklch(0.35 0.03 255 / 0.6)" stroke-width="1"></rect>
+        <path d="M46,146 C120,140 150,132 180,112 C205,94 215,42 232,26 C240,19 250,19 258,26 C275,44 285,98 310,116 C340,138 380,144 446,147" fill="none" stroke="oklch(0.82 0.09 210)" stroke-width="2.2" stroke-linecap="round"></path>
+        <line x1="244" y1="10" x2="244" y2="150" stroke="oklch(0.55 0.04 255 / 0.8)" stroke-width="1" stroke-dasharray="4 4"></line>
+        <circle cx="244" cy="23" r="4" fill="oklch(0.82 0.09 210)"></circle>
+        <text x="256" y="34" fill="oklch(0.82 0.09 210)" font-size="12" font-family="JetBrains Mono, monospace">peak = 真实重叠</text>
+        <text x="46" y="172" fill="oklch(0.74 0.02 255)" font-size="11" font-family="JetBrains Mono, monospace">0</text>
+        <text x="380" y="172" fill="oklch(0.74 0.02 255)" font-size="11" font-family="JetBrains Mono, monospace">帧高</text>
+        <text x="8" y="84" fill="oklch(0.74 0.02 255)" font-size="11" font-family="JetBrains Mono, monospace">NCC</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">FAQ · 常见问题</div>
+      <h2>先把疑虑说清楚</h2>
+    </div>
+    <div class="faq-list">
+      <details class="reveal">
+        <summary>为什么要授予录屏 / 屏幕直播权限？<span class="plus">＋</span></summary>
+        <div class="ans">这是系统允许截取「其他应用」画面的唯一通道。授权后画面数据只经过本机内存与本地缓存目录，用于拼接后即清理——Stitchly 没有任何联网代码，不上传任何画面。</div>
+      </details>
+      <details class="reveal">
+        <summary>iOS 为什么不能像安卓那样「边滚边拼」？<span class="plus">＋</span></summary>
+        <div class="ans">iOS 系统不允许第三方 App 在后台抓取其他应用的画面，这是 Apple 的隐私设计，任何 App 都绕不开。系统提供的合法通道是「屏幕直播」（Broadcast），所以我们选择了录屏抽帧 + 相册拼接两条路，效果一致，只是多一步停止录制的动作。</div>
+      </details>
+      <details class="reveal">
+        <summary>页面里的 GIF、轮播图会影响拼接吗？<span class="plus">＋</span></summary>
+        <div class="ans">对齐按竖向分带投票，动态区域只占部分宽度时，会被其余「干净」分带淹没，不影响整体。极端情况下（动态内容占满整屏宽度）可能出现少量重复行，结果页会明确标注「未对齐」次数。</div>
+      </details>
+      <details class="reveal">
+        <summary>聊天记录、群消息能截吗？会不会很卡？<span class="plus">＋</span></summary>
+        <div class="ans">可以，这正是最常见的用法。采集过程常驻内存只有一帧画面，拼接阶段逐帧从磁盘读取，几百帧的长会话也不会撑爆内存。周期性重复的内容（比如刷屏的表情包）建议滚得慢一点、匀一点。</div>
+      </details>
+      <details class="reveal">
+        <summary>支持平板和横屏吗？<span class="plus">＋</span></summary>
+        <div class="ans">v1 面向竖屏手机页面优化。横屏与折叠屏展开态的适配在计划中——对齐算法本身与宽高无关，主要是采集与界面适配的工作量。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="dl reveal">
+      <div class="kicker" style="justify-content:center">Get Stitchly · 下载</div>
+      <h2>把长页面，<span class="grad">收进一张图</span></h2>
+      <p class="sub">v0.1 已完成双端开发并通过核心算法测试，正在真机验证与上架准备。</p>
+      <div class="dl-row">
+        <a class="btn btn-primary" href="#" aria-disabled="true">Android APK<span class="mono" style="font-size:11px; opacity:0.7">· 即将提供</span></a>
+        <a class="btn btn-ghost disabled" href="#">App Store / TestFlight</a>
+      </div>
+      <p class="dl-note">[ 占位按钮 · 发布后替换为真实链接 ] &nbsp;·&nbsp; 需 Android 8+ / iOS 15+</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <a class="brand" href="#top">
+      <span class="wordmark grad">STITCHLY</span>
+      <span class="cn">拾卷</span>
+    </a>
+    <div class="foot-links">
+      <a href="#methods">三种方式</a>
+      <a href="#how">工作原理</a>
+      <a href="#faq">常见问题</a>
+      <a href="#">GitHub</a>
+      <a href="#">隐私说明</a>
+    </div>
+    <div class="copyright">© 2026 STITCHLY — 本页为设计稿，产品数据来自真实实现 · SCROLL ONCE, STITCH ALL</div>
+  </div>
+</footer>
+
+<script>
+// 采集帧数演示：0 → 137 递增，随后显示“已到页底”，循环
+(function () {
+  var num = document.getElementById("frameNum");
+  var dup = document.getElementById("dupNum");
+  var badge = document.getElementById("bottomBadge");
+  if (!num || !dup || !badge) return;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) { num.textContent = "137"; dup.textContent = "23"; badge.classList.add("show"); return; }
+
+  var n = 0, dupn = 0, timer = null, badgeTimer = null;
+  function reset() {
+    clearInterval(timer); clearTimeout(badgeTimer);
+    n = 0; dupn = 0; badge.classList.remove("show");
+    num.textContent = "0"; dup.textContent = "0";
+    timer = setInterval(function () {
+      n += 3 + Math.floor(Math.random() * 4);
+      if (n > 137) n = 137;
+      if (Math.random() < 0.35) dupn += 1;
+      num.textContent = String(n);
+      dup.textContent = String(Math.min(dupn, 23));
+      if (n >= 137) {
+        clearInterval(timer);
+        badgeTimer = setTimeout(function () {
+          badge.classList.add("show");
+          setTimeout(reset, 3600);
+        }, 500);
+      }
+    }, 55);
+  }
+  // 进入视口才开始演示
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { reset(); io.disconnect(); }
+    });
+  }, { threshold: 0.3 });
+  io.observe(badge);
+})();
+
+// 滚动显现
+(function () {
+  var els = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window)) {
+    els.forEach(function (el) { el.classList.add("in"); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>

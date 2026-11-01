@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Longshot"
+rootProject.name = "Stitchly"
 include(":app")

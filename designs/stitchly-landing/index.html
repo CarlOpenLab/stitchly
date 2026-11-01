@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stitchly — Any app, all the way down</title>
+<meta name="description" content="Stitchly: the system-level long screenshot tool for Android & iOS. Live capture, screen-broadcast extraction and album stitching — every scrollable page becomes one tall image, fully on-device.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+/* ================= Editorial 纸感编辑部 · 正式版 ================= */
+:root{
+  --bg:#f6f1e7;
+  --ink:#211d16;
+  --muted:#6f6a5e;
+  --faded:#9a9385;
+  --accent:#b8431c;
+  --accent-contrast:#f6f1e7;
+  --line:rgba(33,29,22,0.22);
+  --radius:2px;
+  --font-display:"Instrument Serif", "Songti SC", "Noto Serif SC", "STSong", serif;
+  --font-body:-apple-system, "PingFang SC", "MiSans", "Noto Sans SC", "Segoe UI", sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, monospace;
+  /* 手机样机（暗色屏内容 + 纸感印刷边框） */
+  --ph-bezel:#fffdf7;
+  --ph-border:1.5px solid var(--ink);
+  --ph-radius:26px;
+  --ph-screen:#14131a;
+  --ph-muted:#8e8ba0;
+  --ph-accent:#7fd1c0;
+  --ph-rec:#e05537;
+  --ph-line:#2c2b3a;
+  --ph-ink:#e8e6f0;
+  --ph-pill:#26252f;
+  --ph-badge-bg:rgba(127,209,192,0.12);
+  --ph-badge-line:rgba(127,209,192,0.4);
+  --ph-piece:#22212b;
+  --ph-row:#4a4960;
+  --ph-head:linear-gradient(135deg, #3a3850, #2c2b3d);
+  --ph-foot:#26252f;
+  --m-frame-bg:#22212b;
+  --m-frame-idle:#4a4960;
+  --m-frame-l:#3a3950;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); line-height:1.75;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+::selection{ background:var(--accent); color:var(--accent-contrast); }
+
+/* ---- 纸张颗粒 ---- */
+.grain{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:0.05; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wrap{ position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 28px; }
+
+/* ---- type ---- */
+.en{ letter-spacing:0.14em; text-transform:uppercase; }
+.mono{ font-family:var(--font-mono); }
+h1,h2,h3{ font-family:var(--font-display); font-weight:400; line-height:1.12; letter-spacing:0; }
+.hero .sub, .sec-head p, .mcard p, details .ans{ text-wrap:pretty; }
+
+.kicker{
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.3em;
+  text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:12px;
+}
+.kicker::before{ content:""; width:26px; height:1.5px; background:var(--accent); }
+
+/* ---- nav ---- */
+nav{
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+  background:rgba(246,241,231,0.9); border-bottom:1px solid var(--line);
+}
+.nav-in{ display:flex; align-items:center; gap:22px; height:64px; }
+.brand{ display:flex; align-items:baseline; gap:10px; text-decoration:none; color:var(--ink); white-space:nowrap; }
+.brand .wordmark{ font-family:var(--font-display); font-weight:400; font-size:24px; letter-spacing:0.01em; }
+.brand .cn{ font-size:12.5px; color:var(--muted); letter-spacing:0.35em; }
+.nav-links{ display:flex; gap:22px; margin-left:auto; }
+.nav-links a{ color:var(--muted); text-decoration:none; font-size:14px; transition:color .2s; }
+.nav-links a:hover{ color:var(--ink); }
+.lang-switch{ display:flex; align-items:center; gap:2px; font-family:var(--font-mono); font-size:12.5px; }
+.lang-btn{
+  background:none; border:none; color:var(--muted); padding:6px 8px; white-space:nowrap;
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.06em; transition:color .2s;
+}
+.lang-btn:hover{ color:var(--ink); }
+.lang-btn.active{ color:var(--accent); }
+.lang-sep{ color:var(--line); }
+.nav-gh{
+  font-family:var(--font-mono); font-size:12.5px; color:var(--accent); text-decoration:none;
+  padding:6px 2px; white-space:nowrap; border-bottom:1.5px solid transparent; transition:border-color .2s;
+}
+.nav-gh:hover{ border-bottom-color:var(--accent); }
+
+/* ---- hero ---- */
+.hero{ padding:72px 0 40px; display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center; }
+.hero h1{ font-size:clamp(46px, 6vw, 78px); margin:20px 0 18px; }
+.hero h1 em{ font-style:italic; color:var(--accent); }
+.hero .sub{ font-size:17px; color:var(--muted); max-width:32em; }
+.hero .sub strong{ color:var(--ink); }
+.hero .en-tag{
+  margin-top:14px; font-size:13px; color:var(--faded);
+  font-family:var(--font-mono); letter-spacing:0.2em; text-transform:uppercase;
+  border-top:1px solid var(--line); padding-top:12px; display:inline-block;
+}
+.cta-row{ display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; }
+.btn{
+  display:inline-flex; align-items:center; gap:10px; text-decoration:none; white-space:nowrap;
+  font-family:var(--font-display); font-weight:400; font-size:17px;
+  padding:13px 28px; border-radius:0; transition:box-shadow .18s, border-color .18s, background .18s, color .18s;
+}
+.btn-primary{
+  color:var(--accent-contrast); background:var(--accent); border:1.5px solid var(--accent);
+}
+.btn-primary:hover{ box-shadow:4px 4px 0 rgba(33,29,22,0.85); }
+.btn-ghost{ color:var(--ink); border:1.5px solid var(--ink); position:relative; background:transparent; }
+.btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+.btn-ghost .tag{
+  position:absolute; top:-9px; right:12px; font-family:var(--font-mono); font-size:10px;
+  letter-spacing:0.1em; color:var(--accent); background:var(--bg); padding:0 6px;
+}
+.btn.disabled{ opacity:0.55; pointer-events:none; }
+
+/* 数据栏：报纸表格式发丝线 */
+.stats{
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:1px;
+  background:var(--line); margin-top:44px;
+}
+.stat{ background:var(--bg); padding:18px 18px 16px; }
+.stat:first-child{ padding-left:2px; }
+.stat b{ font-family:var(--font-display); font-size:34px; font-weight:400; display:block; color:var(--ink); line-height:1.15; }
+.stat span{ font-size:12.5px; color:var(--muted); letter-spacing:0.02em; }
+
+/* ---- phone mockups ---- */
+.hero-visual{ position:relative; min-height:600px; }
+.phone{
+  position:absolute; width:264px; border-radius:26px; padding:8px;
+  background:var(--ph-bezel); border:var(--ph-border);
+  box-shadow:6px 8px 0 rgba(33,29,22,0.16);
+}
+.phone .screen{
+  border-radius:19px; overflow:hidden; background:var(--ph-screen);
+  height:540px; position:relative; display:flex; flex-direction:column;
+}
+.phone .notch{ width:84px; height:22px; background:#000; border-radius:0 0 14px 14px; position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:5; }
+.p-front{ right:6%; top:30px; z-index:3; animation:hover 7s ease-in-out infinite; }
+@keyframes hover{ 0%,100%{ transform:rotate(2.5deg) translateY(0); } 50%{ transform:rotate(2.5deg) translateY(-12px); } }
+.p-long{ left:0; top:110px; z-index:2; transform:rotate(-4deg) scale(0.92); }
+.p-long .screen{ height:560px; }
+
+.statusbar{ display:flex; justify-content:space-between; padding:12px 18px 6px; font-family:var(--font-mono); font-size:11px; color:var(--ph-muted); z-index:4; }
+.capture-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:0 20px; text-align:center; }
+.capture-body .dot{ width:10px; height:10px; border-radius:50%; background:var(--ph-rec); animation:pulse 1.4s infinite; }
+@keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+.capture-body .t1{ font-size:13px; color:var(--ph-muted); }
+.framecount{ font-family:var(--font-mono); font-size:44px; font-weight:500; color:var(--ph-accent); line-height:1; }
+.framecount small{ font-size:13px; color:var(--ph-muted); font-weight:400; }
+.stoppill{ margin-top:8px; font-size:13px; padding:9px 26px; border-radius:999px; border:1px solid var(--ph-line); color:var(--ph-ink); background:var(--ph-pill); }
+.bottom-badge{
+  margin:0 16px 16px; padding:10px 14px; border-radius:2px; font-size:12.5px;
+  background:var(--ph-badge-bg); border:1px solid var(--ph-badge-line);
+  color:var(--ph-accent); opacity:0; transition:opacity .6s; display:flex; align-items:center; gap:8px;
+}
+.bottom-badge.show{ opacity:1; }
+.appbar{ display:flex; align-items:center; justify-content:space-between; padding:12px 18px 10px; font-size:12px; color:var(--ph-muted); }
+
+.longimg{ padding:14px; display:flex; flex-direction:column; gap:10px; overflow:hidden; }
+.longimg .piece{ border-radius:2px; background:var(--ph-piece); padding:12px; }
+.row{ height:7px; border-radius:2px; background:var(--ph-row); margin-bottom:7px; }
+.row:last-child{ margin-bottom:0; }
+.row.w60{ width:60%; } .row.w85{ width:85%; } .row.w40{ width:40%; }
+.seam{
+  display:flex; align-items:center; gap:8px; font-family:var(--font-mono);
+  font-size:9.5px; color:var(--ph-muted); letter-spacing:0.12em; opacity:0.85;
+}
+.seam::before,.seam::after{ content:""; flex:1; height:1px; background:var(--ph-line); }
+.longimg .head{ border-radius:2px; height:54px; background:var(--ph-head); }
+.longimg .foot{ border-radius:2px; height:34px; background:var(--ph-foot); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:9px; color:var(--ph-muted); letter-spacing:0.2em; }
+
+/* ---- sections ---- */
+section{ padding:96px 0; }
+.sec-head{ max-width:640px; margin-bottom:48px; }
+.sec-head h2{ font-size:clamp(30px, 3.8vw, 46px); margin:16px 0 12px; }
+.sec-head p{ color:var(--muted); font-size:16px; }
+
+.methods{ display:grid; grid-template-columns:repeat(3, 1fr); gap:32px; }
+.mcard{
+  background:transparent; border-top:1.5px solid var(--ink); border-radius:0;
+  padding:20px 0 0; transition:border-color .25s;
+}
+.mcard:hover{ border-top-color:var(--accent); }
+.mcard .mini{ height:130px; border-radius:0; background:var(--ph-screen); border:1px solid var(--line); margin-bottom:20px; position:relative; overflow:hidden; }
+.mcard h3{ font-size:26px; margin-bottom:4px; }
+.mcard .en-sub{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.18em; color:var(--accent); text-transform:uppercase; margin-bottom:12px; }
+.mcard p{ font-size:14px; color:var(--muted); }
+.mcard .plat{ display:inline-block; margin-top:14px; font-family:var(--font-mono); font-size:11px; padding:3px 10px; border-radius:0; border:1px solid var(--line); color:var(--muted); }
+
+.mini .m-frame{ position:absolute; width:52%; height:64%; border:1.5px solid var(--m-frame-idle); border-radius:4px; background:var(--m-frame-bg); }
+.mini .m-frame .l{ height:5px; border-radius:2px; background:var(--m-frame-l); margin:8px 10px 6px; }
+.mini .m-frame .l.short{ width:55%; }
+.mini-live .m-frame{ left:8%; top:18%; }
+.mini-live .m-frame.m2{ left:24%; top:24%; border-color:var(--ph-accent); animation:slide 3.4s ease-in-out infinite; }
+.mini-live .m-frame.m3{ left:40%; top:30%; }
+@keyframes slide{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(9px); } }
+.mini-film{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.mini-film .cell{ width:34px; height:52px; border:1px solid var(--m-frame-idle); border-radius:3px; background:var(--m-frame-bg); position:relative; }
+.mini-film .cell::before,.mini-film .cell::after{ content:""; position:absolute; left:4px; right:4px; height:3px; background:var(--m-frame-l); border-radius:2px; }
+.mini-film .cell::before{ top:4px; } .mini-film .cell::after{ bottom:4px; }
+.mini-film .cell.hot{ border-color:var(--ph-accent); }
+.mini-film .cell .inner{ position:absolute; inset:12px 5px; border-radius:2px; background:var(--ph-head); }
+.mini-album{ display:flex; align-items:center; justify-content:center; }
+.mini-album .shot{ width:38px; height:60px; border-radius:3px; border:1px solid var(--m-frame-idle); background:var(--m-frame-bg); margin-right:-10px; }
+.mini-album .shot.s1{ transform:rotate(-8deg) translateY(6px); }
+.mini-album .shot.s2{ transform:rotate(-2deg); border-color:var(--ph-accent); z-index:2; }
+.mini-album .shot.s3{ transform:rotate(7deg) translateY(-4px); }
+.mini-album .arrow{ font-family:var(--font-mono); color:var(--ph-accent); margin:0 10px 0 18px; }
+.mini-album .long{ width:26px; height:74px; border-radius:3px; border:1px solid var(--m-frame-idle); background:repeating-linear-gradient(180deg, var(--m-frame-bg) 0 10px, var(--m-frame-l) 10px 12px); }
+
+.how{ border-block:1px solid var(--line); }
+.steps{ display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; }
+.step{ border-top:1px solid var(--line); padding:14px 0 0; }
+.step .no{ font-family:var(--font-mono); font-size:11px; color:var(--ink); letter-spacing:0.18em; }
+.step h3{ font-size:19px; margin:8px 0 6px; }
+.step p{ font-size:13.5px; color:var(--muted); }
+.techbox{
+  margin-top:44px; border:1px solid var(--line); border-radius:0;
+  background:#efe9db; padding:28px 30px; display:grid; grid-template-columns:1fr 1.1fr; gap:36px; align-items:center;
+}
+.techbox h3{ font-size:20px; margin-bottom:8px; }
+.techbox p{ font-size:14px; color:var(--muted); }
+.techbox .mono-line{ font-family:var(--font-mono); font-size:12px; color:#3d3729; margin-top:14px; padding:12px 14px; border-radius:0; background:#eae3d2; border:1px solid var(--line); }
+.techbox svg{ width:100%; height:auto; display:block; }
+
+.faq-list{ display:grid; gap:0; max-width:780px; }
+details{ border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
+details:first-child{ border-top:1px solid var(--line); }
+details[open]{ border-color:var(--accent); }
+summary{
+  cursor:pointer; list-style:none; padding:20px 0; font-family:var(--font-display);
+  font-size:22px; font-weight:400; display:flex; align-items:center; justify-content:space-between; gap:16px;
+  transition:color .2s;
+}
+summary:hover{ color:var(--accent); }
+summary::-webkit-details-marker{ display:none; }
+summary .plus{ font-family:var(--font-mono); color:var(--accent); transition:transform .25s; font-size:16px; }
+details[open] summary .plus{ transform:rotate(45deg); }
+details .ans{ padding:0 0 22px; font-size:14.5px; color:var(--muted); max-width:44em; }
+
+.dl{
+  text-align:center; border:1.5px solid var(--ink); border-radius:0; padding:72px 28px;
+  background:transparent; position:relative;
+}
+.dl::before{
+  content:""; position:absolute; inset:6px; border:1px solid var(--line); pointer-events:none;
+}
+.dl h2{ font-size:clamp(34px, 4.4vw, 54px); margin-bottom:12px; }
+.dl h2 em{ font-style:italic; color:var(--accent); }
+.dl .sub{ color:var(--muted); margin-bottom:36px; }
+.dl-row{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+.dl-note{ margin-top:26px; font-family:var(--font-mono); font-size:12px; color:var(--faded); letter-spacing:0.06em; }
+
+footer{ border-top:1px solid var(--line); padding:36px 0 48px; margin-top:96px; }
+.foot-in{ display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:space-between; }
+.foot-links{ display:flex; gap:20px; }
+.foot-links a{ color:var(--muted); text-decoration:none; font-size:13px; }
+.foot-links a:hover{ color:var(--ink); }
+.copyright{ width:100%; font-size:12px; color:var(--faded); font-family:var(--font-mono); }
+
+/* ---- reveal ---- */
+.reveal{ opacity:0; transform:translateY(26px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){
+  .reveal{ opacity:1; transform:none; transition:none; }
+  .p-front, .mini-live .m-frame.m2, .capture-body .dot{ animation:none; }
+}
+
+/* ---- responsive ---- */
+@media (max-width: 960px){
+  .hero{ grid-template-columns:1fr; padding-top:56px; }
+  .hero-visual{ min-height:660px; }
+  .p-long{ left:4%; top:340px; }
+  .p-front{ right:10%; top:0; }
+  .methods{ grid-template-columns:1fr; gap:28px; }
+  .steps{ grid-template-columns:1fr 1fr; gap:28px; }
+  .techbox{ grid-template-columns:1fr; }
+  .stats{ grid-template-columns:1fr 1fr; }
+  .nav-links{ display:none; }
+  .lang-switch{ margin-left:auto; }
+}
+@media (max-width: 560px){
+  .wrap{ padding:0 18px; }
+  .hero-visual{ min-height:620px; transform:scale(0.88); transform-origin:top center; margin-bottom:-60px; }
+  .steps{ grid-template-columns:1fr; }
+  .p-long{ display:none; }
+  .p-front{ right:50%; transform:translateX(50%); }
+  .stat b{ font-size:28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top">
+      <span class="wordmark">STITCHLY</span>
+      <span class="cn">拾卷</span>
+    </a>
+    <div class="nav-links">
+      <a href="#methods" data-i18n="nav.methods">Methods</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#download" data-i18n="nav.download">Download</a>
+    </div>
+    <div class="lang-switch" role="group" aria-label="Language / 语言">
+      <button class="lang-btn active" data-lang="en" type="button" aria-pressed="true">EN</button>
+      <span class="lang-sep" aria-hidden="true">/</span>
+      <button class="lang-btn" data-lang="zh" type="button" aria-pressed="false">中文</button>
+    </div>
+    <a class="nav-gh" href="#" aria-label="GitHub repository (placeholder link)">GITHUB ↗</a>
+  </div>
+</nav>
+
+<header class="wrap hero" id="top">
+  <div>
+    <div class="kicker" data-i18n="hero.kicker">Android · iOS — System-level long screenshot</div>
+    <h1 data-i18n="hero.h1">Any app, <em>all the way down.</em></h1>
+    <p class="sub" data-i18n="hero.sub">Chat histories, late-night threads, checkout pages… if you can scroll it, Stitchly stitches it into one tall image. <strong>Capture while you scroll — stop, and it finishes itself.</strong> No overlap picking, no third-party tools.</p>
+    <p class="en-tag" data-i18n="hero.entag">滚动一次 · 全部拼好</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#download" data-i18n="hero.cta_android">Download for Android</a>
+      <a class="btn btn-ghost disabled" href="#download"><span data-i18n="hero.cta_ios">App Store</span><span class="tag">TESTFLIGHT</span></a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>3</b><span data-i18n="stat1">capture modes</span></div>
+      <div class="stat"><b>~30ms</b><span data-i18n="stat2">alignment per frame</span></div>
+      <div class="stat"><b>100%</b><span data-i18n="stat3">on-device, never uploaded</span></div>
+      <div class="stat"><b>0</b><span data-i18n="stat4">watermarks · no sign-up</span></div>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <div class="phone p-long">
+      <div class="screen">
+        <div class="statusbar"><span>22:47</span><span>5G ▮</span></div>
+        <div class="appbar"><span data-i18n="phone.result">Stitchly · Result</span><span>1080 × 27,632</span></div>
+        <div class="longimg">
+          <div class="head"></div>
+          <div class="seam">STITCH 01</div>
+          <div class="piece"><div class="row"></div><div class="row w85"></div><div class="row w60"></div></div>
+          <div class="piece"><div class="row w85"></div><div class="row"></div><div class="row w40"></div><div class="row w60"></div></div>
+          <div class="seam">STITCH 02</div>
+          <div class="piece"><div class="row w60"></div><div class="row"></div><div class="row w85"></div></div>
+          <div class="piece"><div class="row"></div><div class="row w40"></div><div class="row w60"></div><div class="row w85"></div></div>
+          <div class="seam">STITCH 03</div>
+          <div class="piece"><div class="row w85"></div><div class="row w60"></div><div class="row"></div></div>
+          <div class="foot">— REACHED END —</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone p-front">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="statusbar"><span>22:47</span><span>5G ▮</span></div>
+        <div class="appbar"><span data-i18n="phone.app">Stitchly</span><span>● REC</span></div>
+        <div class="capture-body">
+          <div class="dot"></div>
+          <div class="t1" data-i18n="phone.capturing">Capturing · scroll the page slowly</div>
+          <div class="framecount"><span id="frameNum">0</span> <small data-i18n="phone.frames">frames</small></div>
+          <div class="t1" style="font-size:11.5px" data-i18n="phone.dedup"><span id="dupNum">0</span> duplicates dropped</div>
+          <div class="stoppill" data-i18n="phone.stop">Stop capture</div>
+        </div>
+        <div class="bottom-badge" id="bottomBadge" data-i18n="phone.badge">✓ Page end detected · auto-stopped</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="methods">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker" data-i18n="m.kicker">Three ways</div>
+      <h2 data-i18n="m.h2">Three ways in, one image out</h2>
+      <p data-i18n="m.p">System-level capture of any app: two system channels plus one zero-permission fallback, all inside a single app.</p>
+    </div>
+    <div class="methods">
+      <div class="mcard reveal">
+        <div class="mini mini-live" aria-hidden="true">
+          <div class="m-frame"><div class="l"></div><div class="l short"></div></div>
+          <div class="m-frame m2"><div class="l"></div><div class="l short"></div></div>
+          <div class="m-frame m3"><div class="l"></div><div class="l short"></div></div>
+        </div>
+        <h3 data-i18n="m1.title">Live capture</h3>
+        <div class="en-sub">Live capture</div>
+        <p data-i18n="m1.p">Grant screen capture once, switch to the target app and scroll gently — pause for a second and it stitches itself. Turn on auto-scroll and the page glides on its own.</p>
+        <span class="plat">ANDROID 8.0+</span>
+      </div>
+      <div class="mcard reveal">
+        <div class="mini mini-film" aria-hidden="true">
+          <div class="cell"><div class="inner"></div></div>
+          <div class="cell hot"><div class="inner"></div></div>
+          <div class="cell"><div class="inner"></div></div>
+          <div class="cell"><div class="inner"></div></div>
+        </div>
+        <h3 data-i18n="m2.title">Record &amp; extract</h3>
+        <div class="en-sub">Record &amp; extract</div>
+        <p data-i18n="m2.p">Record with the system screen broadcast while you scroll; the app extracts, dedupes and aligns frames automatically. The only channel iOS allows for capturing other apps.</p>
+        <span class="plat">iOS 15.0+</span>
+      </div>
+      <div class="mcard reveal">
+        <div class="mini mini-album" aria-hidden="true">
+          <div class="shot s1"></div>
+          <div class="shot s2"></div>
+          <div class="shot s3"></div>
+          <span class="arrow">»</span>
+          <div class="long"></div>
+        </div>
+        <h3 data-i18n="m3.title">Album stitch</h3>
+        <div class="en-sub">Album stitch</div>
+        <p data-i18n="m3.p">Already have a burst of screenshots? Select them in order and the overlaps are detected for you — the status bar appears only once. Identical on both platforms, no sensitive permissions.</p>
+        <span class="plat">ANDROID · iOS</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker" data-i18n="h.kicker">How it works</div>
+      <h2 data-i18n="h.h2">What happens the second you stop</h2>
+      <p data-i18n="h.p">One C++ stitching core shared by both platforms: no third-party image libraries, and every computation stays on your device.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="no">01 · CAPTURE</div><h3 data-i18n="s1.title">Continuous frames</h3><p data-i18n="s1.p">One frame every ~0.12s — consecutive frames naturally overlap by a lot.</p></div>
+      <div class="step reveal"><div class="no">02 · ALIGN</div><h3 data-i18n="s2.title">Banded alignment</h3><p data-i18n="s2.p">Each frame splits into 4 vertical bands that vote for the best overlap; the median wins, so GIFs and carousels get outvoted. A parabola fit refines to sub-pixel.</p></div>
+      <div class="step reveal"><div class="no">03 · DEDUCE</div><h3 data-i18n="s3.title">Smart dedupe</h3><p data-i18n="s3.p">Duplicate frames and the page end are detected: frames adding fewer than 8 pixels are dropped — overshooting a long list is fine.</p></div>
+      <div class="step reveal"><div class="no">04 · EXPORT</div><h3 data-i18n="s4.title">Roll &amp; export</h3><p data-i18n="s4.p">Status and navigation bars are kept exactly once each; export a lossless PNG, save or share it directly.</p></div>
+    </div>
+    <div class="techbox reveal">
+      <div>
+        <h3 data-i18n="t.h3">Why it's fast and steady</h3>
+        <p data-i18n="t.p">Alignment searches only one dimension: each frame is downscaled to a 200px-wide grayscale, the overlap is found with integral-image-accelerated NCC, then compositing happens at full resolution. About 30ms per frame pair — even a hundred-frame session takes seconds.</p>
+        <div class="mono-line">ncc(shift) = cov(A[-s:], B[:s]) / (σ_A · σ_B)<br>shift* = median( band₁, band₂, band₃, band₄ )</div>
+      </div>
+      <svg viewBox="0 0 460 190" role="img" aria-label="NCC score curve over overlap shift, peaking at the true overlap">
+        <rect x="46" y="10" width="400" height="140" fill="none" stroke="#211d16" stroke-width="1" opacity="0.3"></rect>
+        <path d="M46,146 C120,140 150,132 180,112 C205,94 215,42 232,26 C240,19 250,19 258,26 C275,44 285,98 310,116 C340,138 380,144 446,147" fill="none" stroke="#b8431c" stroke-width="2.2" stroke-linecap="round"></path>
+        <line x1="244" y1="10" x2="244" y2="150" stroke="#211d16" stroke-width="1" stroke-dasharray="4 4" opacity="0.4"></line>
+        <circle cx="244" cy="23" r="4" fill="#b8431c"></circle>
+        <text x="256" y="34" fill="#b8431c" font-size="12" font-family="JetBrains Mono, monospace" data-i18n="svg.peak">peak = true overlap</text>
+        <text x="46" y="172" fill="#6f6a5e" font-size="11" font-family="JetBrains Mono, monospace">0</text>
+        <text x="380" y="172" fill="#6f6a5e" font-size="11" font-family="JetBrains Mono, monospace" data-i18n="svg.axis">frame height</text>
+        <text x="8" y="84" fill="#6f6a5e" font-size="11" font-family="JetBrains Mono, monospace">NCC</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker" data-i18n="f.kicker">FAQ</div>
+      <h2 data-i18n="f.h2">Straight answers, up front</h2>
+    </div>
+    <div class="faq-list">
+      <details class="reveal">
+        <summary><span data-i18n="f.q1">Why the screen-capture / broadcast permission?</span><span class="plus">＋</span></summary>
+        <div class="ans" data-i18n="f.a1">It's the only channel the OS allows for reading other apps' screens. After the grant, frames stay in on-device memory and a local cache folder, used for stitching and then cleaned up — Stitchly ships no networking code at all.</div>
+      </details>
+      <details class="reveal">
+        <summary><span data-i18n="f.q2">Why can't iOS stitch live like Android?</span><span class="plus">＋</span></summary>
+        <div class="ans" data-i18n="f.a2">iOS doesn't let third-party apps read other apps' screens in the background — an Apple privacy design no app can bypass. The legitimate channel is the system screen broadcast, which is why iOS offers record-and-extract plus album stitching. Same results, one extra tap to stop.</div>
+      </details>
+      <details class="reveal">
+        <summary><span data-i18n="f.q3">Do GIFs and carousels break the stitch?</span><span class="plus">＋</span></summary>
+        <div class="ans" data-i18n="f.a3">Alignment votes across vertical bands: as long as the dynamic content doesn't span the full width, the clean bands outvote it. In the extreme case, the result page flags the number of unresolved seams.</div>
+      </details>
+      <details class="reveal">
+        <summary><span data-i18n="f.q4">Can I capture chat history? Will it lag?</span><span class="plus">＋</span></summary>
+        <div class="ans" data-i18n="f.a4">Yes — it's the most common use. Capture keeps one frame in memory; stitching reads frames from disk one by one, so even hundred-frame sessions won't blow up memory. For repetitive content, scroll slowly and steadily.</div>
+      </details>
+      <details class="reveal">
+        <summary><span data-i18n="f.q5">Tablets and landscape?</span><span class="plus">＋</span></summary>
+        <div class="ans" data-i18n="f.a5">v1 is tuned for portrait phone pages. Landscape and foldable support is planned — the alignment algorithm itself doesn't care about size; the work is in capture and UI.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="dl reveal">
+      <div class="kicker" style="justify-content:center" data-i18n="d.kicker">Get Stitchly</div>
+      <h2 data-i18n="d.h2">Every long page, <em>one tall image</em></h2>
+      <p class="sub" data-i18n="d.p">v0.1 is code-complete on both platforms with the stitching core fully tested — on-device verification and store submission are underway.</p>
+      <div class="dl-row">
+        <a class="btn btn-primary" href="#" aria-disabled="true"><span data-i18n="d.android">Android APK</span><span class="mono" style="font-size:12px; opacity:0.85" data-i18n="d.soon">· coming soon</span></a>
+        <a class="btn btn-ghost disabled" href="#">App Store / TestFlight</a>
+      </div>
+      <p class="dl-note" data-i18n="d.note">[ placeholder buttons · real links land at release ] &nbsp;·&nbsp; requires Android 8+ / iOS 15+</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <a class="brand" href="#top">
+      <span class="wordmark">STITCHLY</span>
+      <span class="cn">拾卷</span>
+    </a>
+    <div class="foot-links">
+      <a href="#methods" data-i18n="nav.methods">Methods</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#">GitHub</a>
+      <a href="#" data-i18n="foot.privacy">Privacy</a>
+    </div>
+    <div class="copyright" data-i18n="foot.copy">© 2026 STITCHLY — design mock · all product data from the real implementation · SCROLL ONCE, STITCH ALL</div>
+  </div>
+</footer>
+
+<script>
+// ---------- 双语字典：英文为默认语言，中文完整对照 ----------
+var I18N = {
+  en: {
+    "nav.methods": "Methods",
+    "nav.how": "How it works",
+    "nav.faq": "FAQ",
+    "nav.download": "Download",
+    "hero.kicker": "Android · iOS — System-level long screenshot",
+    "hero.h1": "Any app, <em>all the way down.</em>",
+    "hero.sub": "Chat histories, late-night threads, checkout pages… if you can scroll it, Stitchly stitches it into one tall image. <strong>Capture while you scroll — stop, and it finishes itself.</strong> No overlap picking, no third-party tools.",
+    "hero.entag": "滚动一次 · 全部拼好",
+    "hero.cta_android": "Download for Android",
+    "hero.cta_ios": "App Store",
+    "stat1": "capture modes",
+    "stat2": "alignment per frame",
+    "stat3": "on-device, never uploaded",
+    "stat4": "watermarks · no sign-up",
+    "phone.result": "Stitchly · Result",
+    "phone.app": "Stitchly",
+    "phone.capturing": "Capturing · scroll the page slowly",
+    "phone.frames": "frames",
+    "phone.dedup": "<span id=\"dupNum\">0</span> duplicates dropped",
+    "phone.stop": "Stop capture",
+    "phone.badge": "✓ Page end detected · auto-stopped",
+    "m.kicker": "Three ways",
+    "m.h2": "Three ways in, one image out",
+    "m.p": "System-level capture of any app: two system channels plus one zero-permission fallback, all inside a single app.",
+    "m1.title": "Live capture",
+    "m1.p": "Grant screen capture once, switch to the target app and scroll gently — pause for a second and it stitches itself. Turn on auto-scroll and the page glides on its own.",
+    "m2.title": "Record & extract",
+    "m2.p": "Record with the system screen broadcast while you scroll; the app extracts, dedupes and aligns frames automatically. The only channel iOS allows for capturing other apps.",
+    "m3.title": "Album stitch",
+    "m3.p": "Already have a burst of screenshots? Select them in order and the overlaps are detected for you — the status bar appears only once. Identical on both platforms, no sensitive permissions.",
+    "h.kicker": "How it works",
+    "h.h2": "What happens the second you stop",
+    "h.p": "One C++ stitching core shared by both platforms: no third-party image libraries, and every computation stays on your device.",
+    "s1.title": "Continuous frames",
+    "s1.p": "One frame every ~0.12s — consecutive frames naturally overlap by a lot.",
+    "s2.title": "Banded alignment",
+    "s2.p": "Each frame splits into 4 vertical bands that vote for the best overlap; the median wins, so GIFs and carousels get outvoted. A parabola fit refines to sub-pixel.",
+    "s3.title": "Smart dedupe",
+    "s3.p": "Duplicate frames and the page end are detected: frames adding fewer than 8 pixels are dropped — overshooting a long list is fine.",
+    "s4.title": "Roll & export",
+    "s4.p": "Status and navigation bars are kept exactly once each; export a lossless PNG, save or share it directly.",
+    "t.h3": "Why it's fast and steady",
+    "t.p": "Alignment searches only one dimension: each frame is downscaled to a 200px-wide grayscale, the overlap is found with integral-image-accelerated NCC, then compositing happens at full resolution. About 30ms per frame pair — even a hundred-frame session takes seconds.",
+    "svg.peak": "peak = true overlap",
+    "svg.axis": "frame height",
+    "f.kicker": "FAQ",
+    "f.h2": "Straight answers, up front",
+    "f.q1": "Why the screen-capture / broadcast permission?",
+    "f.a1": "It's the only channel the OS allows for reading other apps' screens. After the grant, frames stay in on-device memory and a local cache folder, used for stitching and then cleaned up — Stitchly ships no networking code at all.",
+    "f.q2": "Why can't iOS stitch live like Android?",
+    "f.a2": "iOS doesn't let third-party apps read other apps' screens in the background — an Apple privacy design no app can bypass. The legitimate channel is the system screen broadcast, which is why iOS offers record-and-extract plus album stitching. Same results, one extra tap to stop.",
+    "f.q3": "Do GIFs and carousels break the stitch?",
+    "f.a3": "Alignment votes across vertical bands: as long as the dynamic content doesn't span the full width, the clean bands outvote it. In the extreme case, the result page flags the number of unresolved seams.",
+    "f.q4": "Can I capture chat history? Will it lag?",
+    "f.a4": "Yes — it's the most common use. Capture keeps one frame in memory; stitching reads frames from disk one by one, so even hundred-frame sessions won't blow up memory. For repetitive content, scroll slowly and steadily.",
+    "f.q5": "Tablets and landscape?",
+    "f.a5": "v1 is tuned for portrait phone pages. Landscape and foldable support is planned — the alignment algorithm itself doesn't care about size; the work is in capture and UI.",
+    "d.kicker": "Get Stitchly",
+    "d.h2": "Every long page, <em>one tall image</em>",
+    "d.p": "v0.1 is code-complete on both platforms with the stitching core fully tested — on-device verification and store submission are underway.",
+    "d.android": "Android APK",
+    "d.soon": "· coming soon",
+    "d.note": "[ placeholder buttons · real links land at release ] &nbsp;·&nbsp; requires Android 8+ / iOS 15+",
+    "foot.privacy": "Privacy",
+    "foot.copy": "© 2026 STITCHLY — design mock · all product data from the real implementation · SCROLL ONCE, STITCH ALL",
+    "meta.title": "Stitchly — Any app, all the way down",
+    "meta.desc": "Stitchly: the system-level long screenshot tool for Android & iOS. Live capture, screen-broadcast extraction and album stitching — every scrollable page becomes one tall image, fully on-device."
+  },
+  zh: {
+    "nav.methods": "三种方式",
+    "nav.how": "工作原理",
+    "nav.faq": "常见问题",
+    "nav.download": "下载",
+    "hero.kicker": "Android · iOS — 系统级长截图",
+    "hero.h1": "任何应用，<em>一卷到底</em>",
+    "hero.sub": "微信聊天、深夜长帖、商品详情……只要能滚动的页面，Stitchly 都能拼成一张完整长图。<strong>滚动时实时抓帧，停手自动收卷</strong>——不用挑重叠、不用导第三方。",
+    "hero.entag": "SCROLL ONCE · STITCH ALL",
+    "hero.cta_android": "下载 Android 版",
+    "hero.cta_ios": "App Store",
+    "stat1": "种采集方式",
+    "stat2": "每帧对齐耗时",
+    "stat3": "本地处理 不上传",
+    "stat4": "水印 · 无需注册",
+    "phone.result": "拾卷 · 拼接结果",
+    "phone.app": "拾卷",
+    "phone.capturing": "正在采集 · 请缓慢滚动页面",
+    "phone.frames": "帧",
+    "phone.dedup": "已自动去重 <span id=\"dupNum\">0</span> 帧",
+    "phone.stop": "停止采集",
+    "phone.badge": "✓ 已检测到页底 · 自动收卷",
+    "m.kicker": "三种方式",
+    "m.h2": "不同场景，各有捷径",
+    "m.p": "系统级截取任意应用，两条系统通道 + 一条零门槛通道，全部收在同一个 App 里。",
+    "m1.title": "实时抓帧",
+    "m1.p": "授权一次录屏，切到目标应用慢慢滚动；停下约一秒自动收卷拼接。开启「自动滚动」后连手指都省了，页面自己匀速上滑。",
+    "m2.title": "录屏抽帧",
+    "m2.p": "通过系统「屏幕直播」边滚边录，App 自动从视频里抽帧、去重、对齐。这是 iOS 上截取其他应用长图的唯一系统通道。",
+    "m3.title": "相册拼接",
+    "m3.p": "已经截好了一串图？按顺序选进来自动拼接——重叠区自动检测，状态栏只保留一份。双端一致，不需要任何敏感权限。",
+    "h.kicker": "工作原理",
+    "h.h2": "停手的那一秒，发生了什么",
+    "h.p": "拼接核心用 C++ 写了一份、双端共享：不依赖任何第三方图像库，全部计算在本机完成。",
+    "s1.title": "连续采集",
+    "s1.p": "约每 0.12 秒收一帧，帧与帧之间天然带大量重叠。",
+    "s2.title": "分带对齐",
+    "s2.p": "竖向分成 4 带各自寻找重叠位置，取中位数投票，动态内容（GIF、视频轮播）被干净分带淹没；再抛物线插值到亚像素精度。",
+    "s3.title": "智能去重",
+    "s3.p": "识别重复帧与「已到页底」：新增内容不足 8 像素的帧自动剔除，长列表滚过头也不怕。",
+    "s4.title": "收卷导出",
+    "s4.p": "状态栏、导航栏只保留首尾各一份，输出无损 PNG，直接保存或分享。",
+    "t.h3": "为什么又快又稳",
+    "t.p": "对齐只在一维垂直方向搜索：先把每帧降到 200px 宽的灰度图，用积分图加速的归一化互相关（NCC）找重叠，再回到原图无缝合成。每对相邻帧约 30ms，一百帧的会话也只花几秒。",
+    "svg.peak": "peak = 真实重叠",
+    "svg.axis": "帧高",
+    "f.kicker": "常见问题",
+    "f.h2": "先把疑虑说清楚",
+    "f.q1": "为什么要授予录屏 / 屏幕直播权限？",
+    "f.a1": "这是系统允许截取「其他应用」画面的唯一通道。授权后画面数据只经过本机内存与本地缓存目录，用于拼接后即清理——Stitchly 没有任何联网代码，不上传任何画面。",
+    "f.q2": "iOS 为什么不能像安卓那样「边滚边拼」？",
+    "f.a2": "iOS 系统不允许第三方 App 在后台抓取其他应用的画面，这是 Apple 的隐私设计，任何 App 都绕不开。系统提供的合法通道是「屏幕直播」（Broadcast），所以我们选择了录屏抽帧 + 相册拼接两条路，效果一致，只是多一步停止录制的动作。",
+    "f.q3": "页面里的 GIF、轮播图会影响拼接吗？",
+    "f.a3": "对齐按竖向分带投票，动态区域只占部分宽度时，会被其余「干净」分带淹没，不影响整体。极端情况下（动态内容占满整屏宽度）可能出现少量重复行，结果页会明确标注「未对齐」次数。",
+    "f.q4": "聊天记录、群消息能截吗？会不会很卡？",
+    "f.a4": "可以，这正是最常见的用法。采集过程常驻内存只有一帧画面，拼接阶段逐帧从磁盘读取，几百帧的长会话也不会撑爆内存。周期性重复的内容（比如刷屏的表情包）建议滚得慢一点、匀一点。",
+    "f.q5": "支持平板和横屏吗？",
+    "f.a5": "v1 面向竖屏手机页面优化。横屏与折叠屏展开态的适配在计划中——对齐算法本身与宽高无关，主要是采集与界面适配的工作量。",
+    "d.kicker": "Get Stitchly · 下载",
+    "d.h2": "把长页面，<em>收进一张图</em>",
+    "d.p": "v0.1 已完成双端开发并通过核心算法测试，正在真机验证与上架准备。",
+    "d.android": "Android APK",
+    "d.soon": "· 即将提供",
+    "d.note": "[ 占位按钮 · 发布后替换为真实链接 ] &nbsp;·&nbsp; 需 Android 8+ / iOS 15+",
+    "foot.privacy": "隐私说明",
+    "foot.copy": "© 2026 STITCHLY — 本页为设计稿，产品数据来自真实实现 · SCROLL ONCE, STITCH ALL",
+    "meta.title": "Stitchly 拾卷 — 任何应用，一卷到底",
+    "meta.desc": "Stitchly 拾卷：安卓与 iOS 系统级长截图工具。实时抓帧拼接、录屏抽帧、相册拼接，三种方式，任意应用的长页面一张图收进口袋。"
+  }
+};
+
+(function () {
+  var metaDesc = document.querySelector('meta[name="description"]');
+  function applyLang(lang) {
+    var dict = I18N[lang] || I18N.en;
+    document.documentElement.lang = lang === "zh" ? "zh" : "en";
+    document.title = dict["meta.title"];
+    if (metaDesc) metaDesc.setAttribute("content", dict["meta.desc"]);
+    var nodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i++) {
+      var key = nodes[i].getAttribute("data-i18n");
+      if (dict[key] != null) nodes[i].innerHTML = dict[key];
+    }
+    var btns = document.querySelectorAll(".lang-btn");
+    for (var j = 0; j < btns.length; j++) {
+      var on = btns[j].getAttribute("data-lang") === lang;
+      btns[j].classList.toggle("active", on);
+      btns[j].setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    try { localStorage.setItem("stitchly-lang", lang); } catch (e) {}
+  }
+  var btns = document.querySelectorAll(".lang-btn");
+  for (var i = 0; i < btns.length; i++) {
+    (function (b) {
+      b.addEventListener("click", function () {
+        applyLang(b.getAttribute("data-lang"));
+      });
+    })(btns[i]);
+  }
+  var saved = "en";
+  try { saved = localStorage.getItem("stitchly-lang") || "en"; } catch (e) {}
+  applyLang(saved === "zh" ? "zh" : "en");
+})();
+
+// 采集帧数演示：0 → 137 递增，随后显示“已到页底”，循环
+// （元素引用每次现查：语言切换会替换 data-i18n 容器内容）
+(function () {
+  var badge = document.getElementById("bottomBadge");
+  if (!badge) return;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function els() {
+    return {
+      num: document.getElementById("frameNum"),
+      dup: document.getElementById("dupNum"),
+    };
+  }
+  if (reduced) {
+    var e0 = els();
+    if (e0.num) e0.num.textContent = "137";
+    if (e0.dup) e0.dup.textContent = "23";
+    badge.classList.add("show");
+    return;
+  }
+  var n = 0, dupn = 0, timer = null, badgeTimer = null;
+  function reset() {
+    clearInterval(timer); clearTimeout(badgeTimer);
+    n = 0; dupn = 0; badge.classList.remove("show");
+    var e = els();
+    if (e.num) e.num.textContent = "0";
+    if (e.dup) e.dup.textContent = "0";
+    timer = setInterval(function () {
+      n += 3 + Math.floor(Math.random() * 4);
+      if (n > 137) n = 137;
+      if (Math.random() < 0.35) dupn += 1;
+      var e2 = els();
+      if (e2.num) e2.num.textContent = String(n);
+      if (e2.dup) e2.dup.textContent = String(Math.min(dupn, 23));
+      if (n >= 137) {
+        clearInterval(timer);
+        badgeTimer = setTimeout(function () {
+          badge.classList.add("show");
+          setTimeout(reset, 3600);
+        }, 500);
+      }
+    }, 55);
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { reset(); io.disconnect(); }
+    });
+  }, { threshold: 0.3 });
+  io.observe(badge);
+})();
+
+// 滚动显现
+(function () {
+  var els = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window)) {
+    els.forEach(function (el) { el.classList.add("in"); });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>
