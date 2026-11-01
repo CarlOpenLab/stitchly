@@ -1,6 +1,15 @@
-# Longshot - 跨平台长截图工具
+# Stitchly 拾卷 — 跨平台长截图工具
 
-系统级长截图工具（Android + iOS），可截取**任意应用**的长页面。拼接算法用纯 C++ 实现一份共享核心，两端原生壳。
+> 任意应用，一卷到底。系统级长截图工具（Android + iOS），可截取**任意应用**的长页面。拼接算法用纯 C++ 实现一份共享核心，两端原生壳。
+
+[![Platform](https://img.shields.io/badge/platform-Android%208%2B%20%7C%20iOS%2015%2B-4c4c4c)](#功能)
+[![Core](https://img.shields.io/badge/core-C%2B%2B17%20·%20零依赖-8A2BE2)](core)
+[![Tests](https://img.shields.io/badge/core%20tests-11%20passed-2ea44f)](core/tests)
+[![GitHub](https://img.shields.io/badge/GitHub-CarlOpenLab%2Fstitchly-181717?logo=github)](https://github.com/CarlOpenLab/stitchly)
+
+```bash
+git clone https://github.com/CarlOpenLab/stitchly.git
+```
 
 ## 功能
 
