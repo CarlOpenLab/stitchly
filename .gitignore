@@ -25,3 +25,4 @@ xcuserdata/
 *.iml
 .vscode/
 .zcode/
+.zcode-site/
