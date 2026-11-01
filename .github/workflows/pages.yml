@@ -30,9 +30,6 @@ jobs:
           mkdir -p _site
           cp designs/stitchly-landing/index.html _site/index.html
       - uses: actions/configure-pages@v5
-        with:
-          # 首次运行自动启用 Pages，无需手动到 Settings 开关
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
