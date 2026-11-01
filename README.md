@@ -6,7 +6,8 @@
 [![Core](https://img.shields.io/badge/core-C%2B%2B17%20·%20零依赖-8A2BE2)](core)
 [![Tests](https://img.shields.io/badge/core%20tests-11%20passed-2ea44f)](core/tests)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Landing](https://img.shields.io/badge/landing-page-b8431c)](https://stitchly-1iov.zai-ai.site)
+[![Pages](https://github.com/CarlOpenLab/stitchly/actions/workflows/pages.yml/badge.svg)](https://carlopenlab.github.io/stitchly/)
+[![Landing](https://img.shields.io/badge/landing-page-b8431c)](https://carlopenlab.github.io/stitchly/)
 [![GitHub](https://img.shields.io/badge/GitHub-CarlOpenLab%2Fstitchly-181717?logo=github)](https://github.com/CarlOpenLab/stitchly)
 
 ```bash
